@@ -1,0 +1,76 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build and cache Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: false
+        tags: vana-sata-proof-python:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Install GSC
+      run: |
+        curl -fsSL https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add -
+        echo "deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/intel-sgx.list
+        sudo apt-get update
+        sudo apt-get install -y sgx-gsc
+
+    - name: Create signing key
+      run: |
+        echo "${{ secrets.SIGNING_KEY }}" > signing_key.pem
+        chmod 600 signing_key.pem
+
+    - name: Build GSC image
+      run: |
+        gsc build -c config.yaml
+
+    - name: Sign GSC image
+      run: |
+        gsc sign-image -c config.yaml --key signing_key.pem
+
+    - name: Create Release and Upload Asset
+      uses: softprops/action-gh-release@v1
+      if: success()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+        files: ./gsc-vana-sata-proof-python-latest.tar.gz
+
+    - name: Cleanup signing key
+      if: always()
+      run: |
+        rm -f signing_key.pem
+
+    - name: Log build result
+      if: always()
+      run: |
+        if [ ${{ job.status }} == "success" ]; then
+          echo "Build and release completed successfully"
+        else
+          echo "Build and release failed"
+        fi
