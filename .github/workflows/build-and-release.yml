@@ -25,16 +25,20 @@ jobs:
       with:
         context: .
         push: false
-        tags: vana-sata-proof-python:latest
+        tags: my-proof:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-    - name: Install GSC
+    - name: Install GSC dependencies
       run: |
-        curl -fsSL https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add -
-        echo "deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/intel-sgx.list
         sudo apt-get update
-        sudo apt-get install -y sgx-gsc
+        sudo apt-get install -y docker.io python3 python3-pip
+
+    - name: Clone and set up GSC
+      run: |
+        git clone https://github.com/gramineproject/gsc.git
+        cd gsc
+        python3 -m pip install --no-cache-dir 'docker>=7.1.0' 'jinja2>=3.1.4' 'tomli>=2.0.1' 'tomli-w>=1.0.0'
 
     - name: Create signing key
       run: |
@@ -43,11 +47,17 @@ jobs:
 
     - name: Build GSC image
       run: |
-        gsc build -c config.yaml
+        cd gsc
+        ./gsc build my-proof ../python.manifest.template -c ../config.yaml
 
     - name: Sign GSC image
       run: |
-        gsc sign-image -c config.yaml --key signing_key.pem
+        cd gsc
+        ./gsc sign-image my-proof ../signing_key.pem -c ../config.yaml
+
+    - name: Export GSC image to file
+      run: |
+        docker save gsc-my-proof:latest | gzip > gsc-my-proof-latest.tar.gz
 
     - name: Create Release and Upload Asset
       uses: softprops/action-gh-release@v1
@@ -59,7 +69,7 @@ jobs:
         name: Release ${{ github.ref }}
         draft: false
         prerelease: false
-        files: ./gsc-vana-sata-proof-python-latest.tar.gz
+        files: ./gsc-my-proof-latest.tar.gz
 
     - name: Cleanup signing key
       if: always()
