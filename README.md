@@ -50,7 +50,13 @@ To use this workflow, you need to:
 
 ## Running with SGX
 
-To run your application:
+To load a released image with docker, copy the URL from the release and run:
+
+   ```bash
+    curl -L https://github.com/vana-com/vana-satya-proof-template-temporary/releases/download/v9/gsc-my-proof-latest.tar.gz | docker load
+   ```
+
+To run the image:
 
    ```
     docker run \
@@ -60,7 +66,7 @@ To run your application:
     gsc-my-proof
    ```
 
-If you wish to use Gramine-enabled SGX features like sealing, remote attestation, etc., you may need to mount additional volumes and devices:
+If your application relies on Gramine-enabled SGX features like sealing, remote attestation, etc., you may need to mount additional volumes and devices:
 
    ```
     docker run \
