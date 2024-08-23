@@ -2,7 +2,7 @@ sgx.enclave_size = "512M"
 sgx.max_threads = 4
 
 fs.mounts = [
-  { type = "encrypted", path = "/sealed", uri = "file:/sealed", key_name = "_sgx_mrenclave" }
+  { type = "encrypted", path = "/sealed", uri = "file:/sealed", key_name = "_sgx_mrenclave" },
   { path = "/input", uri = "file:/input" },
   { path = "/output", uri = "file:/output" },
 ]
