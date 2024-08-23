@@ -62,7 +62,7 @@ jobs:
     - name: Generate verification data
       run: |
         cd gsc
-        ./gsc info-image my-proof > sigstruct.txt
+        ./gsc info-image gsc-my-proof > sigstruct.txt
 
     - name: Upload image
       uses: actions/upload-artifact@v3
