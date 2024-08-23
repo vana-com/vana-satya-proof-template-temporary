@@ -3,11 +3,11 @@ sgx.max_threads = 4
 
 fs.mounts = [
   { type = "encrypted", path = "/sealed", uri = "file:/sealed", key_name = "_sgx_mrenclave" }
-#  { path = "/input", uri = "file:/input" },
-#  { path = "/output", uri = "file:/output" },
+  { path = "/input", uri = "file:/input" },
+  { path = "/output", uri = "file:/output" },
 ]
 
-#sgx.allowed_files = [
-#  "file:/input/",
-#  "file:/output/",
-#]
+sgx.allowed_files = [
+  "file:/input/",
+  "file:/output/",
+]

@@ -32,11 +32,6 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-    # - name: Install GSC dependencies
-    #   run: |
-    #     sudo apt-get update
-    #     sudo apt-get install -y docker.io python3 python3-pip
-
     - name: Clone and set up GSC
       run: |
         git clone https://github.com/gramineproject/gsc.git
